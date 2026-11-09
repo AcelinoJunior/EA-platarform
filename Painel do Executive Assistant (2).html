@@ -1,0 +1,751 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Painel do Executive Assistant</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;700&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#EDEFEA;--surface:#F8F9F6;--ink:#12222E;--mute:#5B6A74;--line:#CBD2CC;--work:#1F8A70;--edge:#E3B23C;--night:#B8C0C8;--bad:#C8412F;--sel:#12222E;--on-sel:#F8F9F6;color-scheme:light}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0F1A22;--surface:#162530;--ink:#E8EDEA;--mute:#93A3AD;--line:#2B3C48;--work:#35B592;--edge:#D4A633;--night:#2F3F4B;--bad:#EE6B58;--sel:#E8EDEA;--on-sel:#0F1A22;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0F1A22;--surface:#162530;--ink:#E8EDEA;--mute:#93A3AD;--line:#2B3C48;--work:#35B592;--edge:#D4A633;--night:#2F3F4B;--bad:#EE6B58;--sel:#E8EDEA;--on-sel:#0F1A22;color-scheme:dark}
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*::before,*::after{box-sizing:inherit}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 15px/1.5 "Instrument Sans",system-ui,sans-serif}
+main{max-width:1080px;margin:0 auto;padding:28px 18px 56px}
+h1{font:700 34px/1.1 "Bricolage Grotesque",system-ui,sans-serif;margin:0 0 6px;letter-spacing:-.02em}
+h2{font:700 21px/1.2 "Bricolage Grotesque",system-ui,sans-serif;margin:0 0 4px}
+.sub{color:var(--mute);margin:0 0 24px;max-width:60ch}
+section{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:20px;margin-bottom:20px}
+.controls{display:flex;flex-wrap:wrap;gap:12px;align-items:end;margin:14px 0 18px}
+label{display:flex;flex-direction:column;gap:3px;font-size:13px;color:var(--mute)}
+input,select,button{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:7px 10px}
+button{cursor:pointer;font-weight:600}
+button.primary{background:var(--sel);color:var(--on-sel);border-color:var(--sel)}
+:focus-visible{outline:2px solid var(--work);outline-offset:2px}
+.overflow{overflow-x:auto}
+.grid{min-width:760px}
+.row{display:grid;grid-template-columns:190px 1fr 150px;gap:12px;align-items:center;padding:7px 0;border-top:1px solid var(--line)}
+.who b{display:block}.who span{font-size:12.5px;color:var(--mute)}
+.strip{display:grid;grid-template-columns:repeat(24,1fr);gap:1px;height:30px}
+.cell{border:0;padding:0;border-radius:2px;background:var(--night);position:relative}
+.cell.w{background:var(--work)}.cell.e{background:var(--edge)}
+.cell.on{outline:2px solid var(--sel);outline-offset:-2px;z-index:1}
+.cell.on::after{content:"";position:absolute;inset:0;background:var(--sel);opacity:.28}
+.axis{display:grid;grid-template-columns:190px 1fr 150px;gap:12px;font-size:11.5px;color:var(--mute)}
+.axis div:nth-child(2){display:grid;grid-template-columns:repeat(24,1fr);gap:1px}
+.axis i{font-style:normal}
+.t{font-weight:600;font-variant-numeric:tabular-nums}
+.chip{display:inline-block;font-size:12px;font-weight:600;padding:2px 8px;border-radius:99px;margin-left:6px}
+.chip.w{background:color-mix(in srgb,var(--work) 22%,transparent);color:var(--work)}
+.chip.e{background:color-mix(in srgb,var(--edge) 28%,transparent);color:var(--ink)}
+.chip.n{background:color-mix(in srgb,var(--bad) 18%,transparent);color:var(--bad)}
+.legend{display:flex;gap:16px;flex-wrap:wrap;font-size:12.5px;color:var(--mute);margin-top:12px}
+.legend span::before{content:"";display:inline-block;width:11px;height:11px;border-radius:2px;margin-right:6px;vertical-align:-1px;background:var(--c)}
+.rm{padding:2px 8px;font-size:12px;margin-left:8px;color:var(--mute)}
+.banner{border-left:4px solid var(--work);background:var(--bg);padding:10px 14px;border-radius:0 6px 6px 0;margin:14px 0 0}
+.banner.bad{border-color:var(--bad)}
+.legs{display:grid;gap:0;margin-top:12px}
+.leg{display:grid;grid-template-columns:110px 1fr;gap:16px;padding:14px 0;border-top:1px solid var(--line)}
+.leg .k{font-weight:600;color:var(--mute);font-size:13px}
+.big{font:700 20px/1.2 "Bricolage Grotesque",system-ui,sans-serif}
+.meta{color:var(--mute);font-size:13.5px;margin-top:3px}
+.tag{font-size:12.5px;font-weight:600;color:var(--bad)}
+@media (max-width:620px){.leg{grid-template-columns:1fr;gap:4px}h1{font-size:28px}}
+.chat{display:grid;gap:10px;max-height:360px;overflow-y:auto;padding:4px 2px;margin-top:12px}.msg{max-width:78ch;padding:9px 13px;border-radius:10px;white-space:pre-wrap}.msg.u{justify-self:end;background:var(--sel);color:var(--on-sel)}.msg.a{background:var(--bg);border:1px solid var(--line)}.msg small{display:block;color:var(--mute);margin-top:6px}.chips{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}.chips button{font-weight:500;font-size:13px}.send{display:flex;gap:8px}.send input{flex:1;min-width:0}.ai{white-space:pre-wrap;background:var(--bg);border-left:4px solid var(--work);padding:12px 14px;border-radius:0 6px 6px 0;margin-top:12px}.ai[hidden]{display:none}button:disabled{opacity:.5;cursor:not-allowed}.task{display:grid;grid-template-columns:1fr 130px auto;gap:12px;align-items:start;padding:12px 0;border-top:1px solid var(--line)}.task.done b{text-decoration:line-through;color:var(--mute)}@media (max-width:620px){.task{grid-template-columns:1fr}}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:10px}.rio{margin-top:4px;padding:6px 10px;background:var(--bg);border-radius:6px;font-size:13.5px}.apbox{border:1px solid var(--line);border-radius:8px;padding:12px;margin-top:12px}[hidden]{display:none!important}@media (max-width:620px){.two{grid-template-columns:1fr}}
+textarea{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:7px 10px;resize:vertical;width:100%}
+</style>
+</head>
+<body>
+<main>
+<div style="display:flex;justify-content:flex-end;margin-bottom:10px"><button id="lang" aria-label="Language">English (US)</button></div>
+<h1>Painel do Executive Assistant</h1>
+<p class="sub">Protótipo para planejar reuniões entre fusos horários e conferir a viagem do executivo, com cálculo automático de horários locais e duração dos voos.</p>
+
+<section aria-labelledby="h-chat">
+  <h2 id="h-chat">Assistente</h2>
+  <p class="meta" style="margin:0">Peça em linguagem natural. O assistente consulta e altera a reunião, os participantes e a viagem usando as ferramentas do painel.</p>
+  <div class="chips" id="chips"></div>
+  <div class="chat" id="chat" aria-live="polite"></div>
+  <div class="send" style="margin-top:12px"><input id="q" placeholder="Ex.: adicione a Priya (Dubai) e ache o melhor horário" aria-label="Mensagem para o assistente"><button id="qs" class="primary">Enviar</button></div>
+</section>
+
+<section aria-labelledby="h-meet">
+  <h2 id="h-meet">Planejar reunião</h2>
+  <p class="meta" style="margin:0">Horário interpretado no fuso escolhido em “Fuso da reunião” (padrão: São Paulo). Clique em uma hora da linha do tempo para mover a reunião.</p>
+  <div class="controls">
+    <label>Fuso da reunião<select id="refz" style="max-width:240px"></select></label>
+    <label>Data<input type="date" id="date" value="2026-11-17"></label>
+    <label>Início<input type="time" id="time" value="10:00" step="1800"></label>
+    <label>Duração<select id="dur"><option value="30">30 min</option><option value="60" selected>1 hora</option><option value="90">1h30</option></select></label>
+    <label>Buscar país, cidade ou GMT<input id="zq" placeholder="ex.: Argentina, Tokyo, GMT+5" style="width:210px"></label>
+    <label>Adicionar participante<select id="addz" style="max-width:260px"></select></label>
+    <input id="addn" placeholder="Nome" aria-label="Nome do participante" style="width:130px">
+    <button id="addb">Adicionar</button>
+    <button id="best" class="primary">Sugerir melhor horário</button>
+  </div>
+  <div class="overflow"><div class="grid" id="grid"></div></div>
+  <div class="legend"><span style="--c:var(--work)">Expediente (9h–18h)</span><span style="--c:var(--edge)">Cedo ou tarde (7h–9h, 18h–21h)</span><span style="--c:var(--night)">Noite ou madrugada</span></div>
+  <div class="banner" id="where"></div>
+</section>
+
+<section aria-labelledby="h-trip">
+  <h2 id="h-trip">Viagem e voos do CEO</h2>
+  <p class="meta" style="margin:0">Escolha os aeroportos e os horários locais. Cada horário aparece no fuso do aeroporto e também no horário do Rio de Janeiro. A duração real é calculada em UTC.</p>
+  <div id="fform"></div>
+  <div id="hform"></div>
+  <div class="legs" id="legs"></div>
+</section>
+<section aria-labelledby="h-sh"><div id="shbox"></div></section>
+
+<section aria-labelledby="h-tasks">
+  <h2 id="h-tasks">Projetos e prioridades</h2>
+  <p class="meta" style="margin:0">Cada tarefa tem prazo, prioridade e status. Todo risco registrado precisa de uma proposta de solução, e os riscos entram sozinhos no briefing. Os dados ficam salvos neste navegador.</p>
+  <div class="controls">
+    <label>Tarefa<input id="tt" style="width:240px"></label>
+    <label>Prazo<input type="date" id="td"></label>
+    <label>Prioridade<select id="tp"><option value="alta">alta</option><option value="média" selected>média</option><option value="baixa">baixa</option></select></label>
+    <label>Risco (opcional)<input id="tr" style="width:200px"></label>
+    <label>Proposta de solução<input id="ts" style="width:220px"></label>
+    <button id="ta" class="primary">Adicionar tarefa</button>
+  </div>
+  <div class="tag" id="thint"></div>
+  <div id="tasks"></div>
+</section>
+
+<section aria-labelledby="h-comm">
+  <h2 id="h-comm">Comunicação e preparação</h2>
+  <p class="meta" style="margin:0">Rascunhos profissionais com os horários nos fusos certos, prontos para revisar e enviar.</p>
+  <div class="controls">
+    <label>O que escrever<select id="ck"></select></label>
+    <label>Idioma<select id="cl"><option value="inglês profissional">Inglês</option><option value="português do Brasil">Português</option></select></label>
+    <button id="cg" class="primary">Gerar rascunho</button>
+    <button id="cc">Copiar</button>
+  </div>
+  <div class="ai" id="cout" hidden></div>
+</section>
+
+<section aria-labelledby="h-brief">
+  <h2 id="h-brief">Briefing do dia</h2>
+  <p class="meta" style="margin:0">Resumo da manhã do executivo, montado a partir da reunião e da viagem. Troque o dia para ver como ele muda.</p>
+  <div class="controls"><label>Dia<input type="date" id="bdate" value="2026-11-17"></label><button id="bai" class="primary">Escrever com IA</button><button id="bdl">Baixar .txt</button></div>
+  <div id="brief"></div>
+  <div class="ai" id="bout" hidden></div>
+</section>
+</main>
+
+<script>
+var OWNER="America/Sao_Paulo";
+var ZONES={"America/Sao_Paulo":"São Paulo","America/New_York":"Nova York","America/Los_Angeles":"Los Angeles","Europe/London":"Londres","Europe/Lisbon":"Lisboa","Europe/Paris":"Paris","Asia/Dubai":"Dubai","Asia/Kolkata":"Mumbai","Asia/Singapore":"Singapura","Asia/Tokyo":"Tóquio","Australia/Sydney":"Sydney"};
+var people=[{n:"Você",z:OWNER,me:1},{n:"Marcus",z:"America/New_York"},{n:"Sofia",z:"Europe/London"},{n:"Kenji",z:"Asia/Tokyo"}];
+var state={date:"2026-11-17",h:10,m:0,dur:60};
+
+function off(ms,tz){var p={};new Intl.DateTimeFormat("en-US",{timeZone:tz,hourCycle:"h23",year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",second:"2-digit"}).formatToParts(new Date(ms)).forEach(function(x){p[x.type]=+x.value});return Date.UTC(p.year,p.month-1,p.day,p.hour,p.minute,p.second)-Math.floor(ms/1000)*1000}
+function wall(date,h,m,tz){var a=date.split("-").map(Number);var g=Date.UTC(a[0],a[1]-1,a[2],h,m);var r=g-off(g,tz);return g-off(r,tz)}
+function f(ms,tz,o){return new Intl.DateTimeFormat(LOC,Object.assign({timeZone:tz},o)).format(new Date(ms))}
+function hm(ms,tz){return LANG=="en"?f(ms,tz,{hour:"numeric",minute:"2-digit",hour12:true}):f(ms,tz,{hour:"2-digit",minute:"2-digit",hourCycle:"h23"})}
+function day(ms,tz){return f(ms,tz,{weekday:"short",day:"2-digit",month:"short"}).replace(".","")}
+function lh(ms,tz){var s=f(ms,tz,{hour:"2-digit",minute:"2-digit",hourCycle:"h23"}).split(":");return +s[0]+(+s[1])/60}
+function cls(h){return h>=9&&h<18?"w":(h>=7&&h<21?"e":"n")}
+function worst(s,e,tz){var a=cls(lh(s,tz)),b=cls(lh(e-1,tz));return(a=="n"||b=="n")?"n":(a=="e"||b=="e")?"e":"w"}
+function dh(ms){var t=Math.round(ms/60000);return Math.floor(t/60)+"h"+(t%60?String(t%60).padStart(2,"0"):"")}
+function startMs(){return wall(state.date,state.h,state.m,REF)}
+
+var CH={w:["w","Bom horário"],e:["e","Fora do expediente"],n:["n","Noite ou madrugada"]};
+function render(){
+  var s=startMs(),e=s+state.dur*60000,ownerDay=day(s,REF);
+  var html='<div class="axis"><div>'+esc('Horas em '+(ZONES[REF]||REF))+'</div><div>'+Array.from({length:24},function(_,i){return"<i>"+(i%3==0?i:"")+"</i>"}).join("")+'</div><div></div></div>';
+  people.forEach(function(p,i){
+    var w=worst(s,e,p.z),d=day(s,p.z),note=d!==ownerDay?" ("+d+")":"";
+    var cells="";
+    for(var h=0;h<24;h++){
+      var ms=wall(state.date,h,0,REF),on=ms>=s-3599000&&ms<e&&ms+3600000>s;
+      cells+='<button class="cell '+cls(lh(ms,p.z))+(on?" on":"")+'" data-h="'+h+'" title="'+hm(ms,p.z)+' em '+ZONES[p.z]+'" aria-label="'+h+'h no fuso de São Paulo"></button>';
+    }
+    html+='<div class="row"><div class="who"><b>'+p.n+(p.me?"":'<button class="rm" data-i="'+i+'" aria-label="Remover '+p.n+'">remover</button>')+'</b><span>'+ZONES[p.z]+" · "+f(s,p.z,{timeZoneName:"short"}).split(" ").pop()+'</span></div><div class="strip">'+cells+'</div><div><span class="t">'+hm(s,p.z)+"–"+hm(e,p.z)+note+'</span><span class="chip '+CH[w][0]+'">'+CH[w][1]+'</span></div></div>';
+  });
+  document.getElementById("grid").innerHTML=html;
+  var bad=people.filter(function(p){return worst(s,e,p.z)=="n"}).map(function(p){return p.n});
+  var w=where(s),msg='<b>Onde você estará:</b> '+w.t;
+  var el=document.getElementById("where");
+  el.className="banner"+(w.flight||bad.length?" bad":"");
+  el.innerHTML=msg+(w.flight?' <span class="tag">Conflito com voo.</span>':"")+(bad.length?'<br><b>Atenção:</b> horário de madrugada para '+bad.join(", ")+".":"");
+}
+
+var legsData=[
+ {k:"fl",code:"LA 8180",a:"GRU",az:OWNER,ac:"São Paulo",b:"JFK",bz:"America/New_York",bc:"Nova York",d:["2026-11-16",22,30],r:["2026-11-17",6,20]},
+ {k:"ht",name:"Hotel em Manhattan",z:"America/New_York",c:"Nova York",i:["2026-11-17",15,0],o:["2026-11-19",11,0]},
+ {k:"fl",code:"BA 112",a:"JFK",az:"America/New_York",ac:"Nova York",b:"LHR",bz:"Europe/London",bc:"Londres",d:["2026-11-19",21,0],r:["2026-11-20",9,0]},
+ {k:"ht",name:"Hotel em Mayfair",z:"Europe/London",c:"Londres",i:["2026-11-20",14,0],o:["2026-11-22",12,0]}
+];
+legsData.forEach(function(l){
+  if(l.k=="fl"){l.s=wall(l.d[0],l.d[1],l.d[2],l.az);l.e=wall(l.r[0],l.r[1],l.r[2],l.bz)}
+  else{l.s=wall(l.i[0],l.i[1],l.i[2],l.z);l.e=wall(l.o[0],l.o[1],l.o[2],l.z)}
+});
+function where(ms){
+  var fl=legsData.filter(function(l){return l.k=="fl"});
+  for(var i=0;i<fl.length;i++)if(ms>=fl[i].s&&ms<fl[i].e)return{flight:1,t:"em voo "+fl[i].a+" → "+fl[i].b+" ("+fl[i].code+"), sem conexão garantida."};
+  var city=ms<fl[0].s?"São Paulo":ms<fl[1].s?fl[0].bc:fl[1].bc,tz=ms<fl[0].s?OWNER:ms<fl[1].s?fl[0].bz:fl[1].bz;
+  return{t:city+", onde serão "+hm(ms,tz)+" no horário local."};
+}
+function trip(){
+  var h="";
+  legsData.forEach(function(l){
+    if(l.k=="fl"){
+      var diff=(off(l.e,l.bz)-off(l.s,l.az))/3600000;
+      h+='<div class="leg"><div class="k">Voo '+l.code+'</div><div><div class="big">'+l.a+" "+hm(l.s,l.az)+" → "+l.b+" "+hm(l.e,l.bz)+'</div><div class="meta">'+l.ac+", "+day(l.s,l.az)+" → "+l.bc+", "+day(l.e,l.bz)+" · duração real "+dh(l.e-l.s)+" · fuso do destino "+(diff>=0?"+":"−")+Math.abs(diff)+"h em relação à origem</div></div></div>";
+    }else{
+      var n=Math.round((l.e-l.s)/86400000);
+      h+='<div class="leg"><div class="k">Hotel</div><div><div class="big">'+l.name+'</div><div class="meta">'+l.c+" · check-in "+day(l.s,l.z)+" às "+hm(l.s,l.z)+" · check-out "+day(l.e,l.z)+" às "+hm(l.e,l.z)+" · "+n+" diárias</div></div></div>";
+    }
+  });
+  var a=legsData[0],hot=legsData[1],gap=hot.s-a.e;
+  h+='<div class="leg"><div class="k">Alerta</div><div class="meta" style="margin:0">Chegada em Nova York às '+hm(a.e,a.bz)+", mas o check-in só abre às "+hm(hot.s,hot.z)+". Pedir early check-in ou guarda-malas ("+dh(gap)+" de espera).</div></div>";
+  document.getElementById("legs").innerHTML=h;
+}
+
+function sync(){var d=document.getElementById("date").value,t=document.getElementById("time").value.split(":");if(d){state.date=d}if(t.length==2){state.h=+t[0];state.m=+t[1]}state.dur=+document.getElementById("dur").value;render()}
+["date","time","dur"].forEach(function(id){document.getElementById(id).addEventListener("change",sync)});
+document.getElementById("grid").addEventListener("click",function(ev){
+  var c=ev.target.closest(".cell"),r=ev.target.closest(".rm");
+  if(c){state.h=+c.dataset.h;state.m=0;document.getElementById("time").value=String(state.h).padStart(2,"0")+":00";render()}
+  if(r){people.splice(+r.dataset.i,1);render()}
+});
+var sel=document.getElementById("addz");
+Object.keys(ZONES).forEach(function(z){var o=document.createElement("option");o.value=z;o.textContent=ZONES[z];sel.appendChild(o)});
+sel.value="Asia/Dubai";
+document.getElementById("addb").addEventListener("click",function(){
+  var n=document.getElementById("addn");if(!ZONES[sel.value])ZONES[sel.value]=zname(sel);people.push({n:n.value.trim()||"Convidado",z:sel.value});n.value="";render();
+});
+document.getElementById("best").addEventListener("click",function(){
+  var best=null;
+  for(var m=0;m<48;m++){
+    var h=Math.floor(m/2),mi=(m%2)*30,s=wall(state.date,h,mi,REF),e=s+state.dur*60000,sc=0;
+    people.forEach(function(p){var w=worst(s,e,p.z);sc+=w=="w"?3:w=="e"?1:-4});
+    var dist=Math.abs(h+mi/60-13);
+    if(!best||sc>best.sc||(sc==best.sc&&dist<best.dist))best={sc:sc,h:h,m:mi,dist:dist};
+  }
+  state.h=best.h;state.m=best.m;
+  document.getElementById("time").value=String(best.h).padStart(2,"0")+":"+String(best.m).padStart(2,"0");render();
+});
+function esc(s){return String(s).replace(/[&<>]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;"}[c]})}
+function ymd(ms,tz){var p={};new Intl.DateTimeFormat("en-US",{timeZone:tz,year:"numeric",month:"2-digit",day:"2-digit"}).formatToParts(new Date(ms)).forEach(function(x){p[x.type]=x.value});return p.year+"-"+p.month+"-"+p.day}
+var STAT={w:"bom horário",e:"fora do expediente",n:"madrugada ou noite"};
+function setMeeting(d,t,dur){if(d)state.date=d;if(t){var a=t.split(":");state.h=+a[0];state.m=+a[1]||0}if(dur)state.dur=+dur;if([30,60,90].indexOf(state.dur)<0)state.dur=60;document.getElementById("date").value=state.date;document.getElementById("time").value=String(state.h).padStart(2,"0")+":"+String(state.m).padStart(2,"0");document.getElementById("dur").value=String(state.dur);render()}
+function snap(){var s=startMs(),e=s+state.dur*60000;return{reuniao:{data_ref:state.date,inicio_ref:hm(s,REF),fuso_ref:REF,duracao_min:state.dur,participantes:people.map(function(p){return{nome:p.n,fuso:p.z,horario_local:hm(s,p.z)+"-"+hm(e,p.z),dia:day(s,p.z),status:STAT[worst(s,e,p.z)]}})},executivo_na_reuniao:where(s).t}}
+function need(i,k){if(!i||!i[k])throw new Error("Campo obrigatório: "+k)}
+var used=[];
+var tools=[
+{name:"consultar_situacao",description:"Retorna a reunião atual, o horário local de cada participante e onde o executivo estará.",inputSchema:{type:"object",properties:{}},execute:function(){used.push("consultar_situacao");return snap()}},
+{name:"definir_reuniao",description:"Define data (AAAA-MM-DD), hora de início (HH:MM, no fuso de referência da reunião: veja fuso_ref no resultado) e duração em minutos (30, 60 ou 90).",inputSchema:{type:"object",properties:{data:{type:"string"},hora:{type:"string"},duracao_min:{type:"number"}},required:["data","hora"]},execute:function(i){need(i,"data");need(i,"hora");used.push("definir_reuniao");setMeeting(i.data,i.hora,i.duracao_min);return snap()}},
+{name:"adicionar_participante",description:"Adiciona um participante com nome e fuso IANA (ex.: Asia/Dubai, America/Chicago).",inputSchema:{type:"object",properties:{nome:{type:"string"},fuso_iana:{type:"string"}},required:["nome","fuso_iana"]},execute:function(i){need(i,"nome");need(i,"fuso_iana");try{new Intl.DateTimeFormat("en",{timeZone:i.fuso_iana})}catch(e){throw new Error("Fuso inválido: "+i.fuso_iana)}if(!ZONES[i.fuso_iana])ZONES[i.fuso_iana]=i.fuso_iana.split("/").pop().replace(/_/g," ");people.push({n:String(i.nome).replace(/[<>&\"']/g,"").slice(0,30),z:i.fuso_iana});used.push("adicionar_participante");render();return snap()}},
+{name:"remover_participante",description:"Remove um participante pelo nome.",inputSchema:{type:"object",properties:{nome:{type:"string"}},required:["nome"]},execute:function(i){need(i,"nome");var n=people.length;people=people.filter(function(p){return p.me||p.n.toLowerCase()!==String(i.nome).toLowerCase()});if(people.length===n)throw new Error("Participante não encontrado");used.push("remover_participante");render();return snap()}},
+{name:"sugerir_melhor_horario",description:"Escolhe e aplica o melhor horário do dia informado (AAAA-MM-DD) para todos os participantes.",inputSchema:{type:"object",properties:{data:{type:"string"}},required:["data"]},execute:function(i){need(i,"data");used.push("sugerir_melhor_horario");setMeeting(i.data);document.getElementById("best").click();return snap()}},
+{name:"onde_estarei",description:"Diz onde o executivo estará em uma data (AAAA-MM-DD) e hora (HH:MM, fuso de São Paulo).",inputSchema:{type:"object",properties:{data:{type:"string"},hora:{type:"string"}},required:["data","hora"]},execute:function(i){need(i,"data");need(i,"hora");used.push("onde_estarei");var a=i.hora.split(":");return where(wall(i.data,+a[0],+a[1]||0,OWNER)).t}}
+];
+var INS="Você é a assistente executiva de um executivo baseado em São Paulo. Responda em português do Brasil, curto e direto. Use SEMPRE as ferramentas para consultar ou alterar a reunião e os participantes; nunca invente horários. Hoje é 8 de novembro de 2026 e a viagem começa em 16/11/2026. Mostre horários no fuso local de cada pessoa e avise sobre madrugadas e conflitos com voos.";
+var hist=[],busy=false;
+function addMsg(c,t){var d=document.createElement("div");d.className="msg "+c;d.textContent=t;var b=document.getElementById("chat");b.appendChild(d);b.scrollTop=b.scrollHeight;return d}
+async function ask(q){
+  q=q.trim();if(LANG=="en"&&CHIP[q])q=CHIP[q];if(busy||!q)return;busy=true;document.getElementById("qs").disabled=true;
+  addMsg("u",q);var bub=addMsg("a","Pensando…");used=[];hist.push({role:"user",content:q});
+  try{
+    var sample=window.claude&&await window.claude.use("sample");
+    if(!sample)throw{code:"unavailable"};
+    var msgs=hist.slice(-7).map(function(m){return{role:m.role,content:m.content}});
+    msgs[msgs.length-1].content=INS+(LANG=="en"?" Reply in American English (US).":"")+"\n\nPedido: "+q;
+    var r=await sample(msgs,{cache:false,tools:tools,onText:function(x){bub.textContent=x.text}});
+    bub.textContent=r.text;hist.push({role:"assistant",content:r.text});
+    if(used.length){var sm=document.createElement("small");sm.textContent="Ferramentas usadas: "+used.join(", ");bub.appendChild(sm)}
+  }catch(e){
+    hist.pop();
+    bub.textContent=e&&e.code==="not_granted"?"Sem permissão para usar o Claude nesta página.":e&&e.code==="rate_limited"?"Muitas solicitações seguidas. Tente de novo em instantes.":e&&e.code==="unavailable"?"O assistente só funciona na página publicada, aberta no claude.ai.":"Não consegui concluir: "+((e&&e.message)||"erro desconhecido");
+  }
+  busy=false;document.getElementById("qs").disabled=false;
+}
+document.getElementById("qs").addEventListener("click",function(){var i=document.getElementById("q");var v=i.value;i.value="";ask(v)});
+document.getElementById("q").addEventListener("keydown",function(e){if(e.key==="Enter"){e.preventDefault();document.getElementById("qs").click()}});
+["Adicione a Priya (Dubai) e ache o melhor horário em 17/11","Onde estarei às 13h do dia 20/11?","Mova a reunião para 19/11 às 14h e me diga quem fica no limite","Resuma os riscos da minha viagem"].forEach(function(t){var b=document.createElement("button");b.textContent=t;b.addEventListener("click",function(){ask(t)});document.getElementById("chips").appendChild(b)});
+
+function bdata(d){
+  var s=startMs(),e=s+state.dur*60000,ev=[],al=[],m=null;
+  legsData.forEach(function(l){
+    if(l.k=="fl"){
+      if(ymd(l.s,l.az)==d)ev.push({t:l.s,x:"Voo "+l.code+" decola de "+l.a+" às "+hm(l.s,l.az)+" (hora local)."});
+      if(ymd(l.e,l.bz)==d){var df=(off(l.e,l.bz)-off(l.s,l.az))/3600000;ev.push({t:l.e,x:"Voo "+l.code+" pousa em "+l.b+" às "+hm(l.e,l.bz)+" (hora local), voo de "+dh(l.e-l.s)+", fuso "+(df>=0?"+":"−")+Math.abs(df)+"h."})}
+    }else{
+      if(ymd(l.s,l.z)==d)ev.push({t:l.s,x:"Check-in no "+l.name+" a partir das "+hm(l.s,l.z)+"."});
+      if(ymd(l.e,l.z)==d)ev.push({t:l.e,x:"Check-out do "+l.name+" até "+hm(l.e,l.z)+"."});
+    }
+  });
+  ev.sort(function(a,b){return a.t-b.t});
+  legsData.forEach(function(a){if(a.k!="fl"||ymd(a.e,a.bz)!=d)return;legsData.forEach(function(h){if(h.k=="ht"&&h.z==a.bz&&ymd(h.s,h.z)==d&&h.s>a.e)al.push("Chegada às "+hm(a.e,a.bz)+" e check-in só às "+hm(h.s,h.z)+": pedir early check-in ou guarda-malas.")})});
+  if(ymd(s,OWNER)==d){
+    m={inicio:hm(s,OWNER),dur:state.dur,parts:people.map(function(p){var w=worst(s,e,p.z);return{n:p.n,cid:ZONES[p.z],h:hm(s,p.z),st:STAT[w],w:w}})};
+    var nt=m.parts.filter(function(p){return p.w=="n"}).map(function(p){return p.n});
+    if(nt.length)al.push("Reunião cai de madrugada ou à noite para: "+nt.join(", ")+".");
+    if(where(s).flight)al.push("A reunião conflita com um voo.");
+  }
+  return{dia:d,onde_as_08h:where(wall(d,8,0,OWNER)).t,eventos:ev.map(function(x){return x.x}),reuniao:m,alertas:al};
+}
+function btext(b){
+  var t=["Briefing de "+b.dia,"","08h em São Paulo: "+b.onde_as_08h,"","Agenda:"];
+  b.eventos.forEach(function(x){t.push("- "+x)});
+  if(b.reuniao){t.push("- Reunião às "+b.reuniao.inicio+" (São Paulo), "+b.reuniao.dur+" min:");b.reuniao.parts.forEach(function(p){t.push("    "+p.n+" ("+p.cid+"): "+p.h+", "+p.st)})}
+  if(!b.eventos.length&&!b.reuniao)t.push("- Nenhum compromisso registrado.");
+  var rk=risks(b);t.push("","Riscos e soluções:");if(rk.length)rk.forEach(function(x){t.push("- "+x.r+" Solução: "+x.s)});else t.push("- Nenhum.");t.push("","Próximos passos:");nexts(b).forEach(function(x){t.push("- "+x)});
+  return t.join("\n");
+}
+function row(k,v){return '<div class="leg"><div class="k">'+k+'</div><div>'+v+'</div></div>'}
+function briefing(){
+  var d=document.getElementById("bdate").value;if(!d)return;
+  var b=bdata(d),a="";
+  b.eventos.forEach(function(x){a+='<div style="margin-bottom:6px">'+esc(x)+'</div>'});
+  if(b.reuniao){a+='<div style="margin-bottom:6px"><b>Reunião às '+b.reuniao.inicio+' (São Paulo), '+b.reuniao.dur+' min</b></div>'+b.reuniao.parts.map(function(p){return'<div class="meta">'+esc(p.n)+' ('+esc(p.cid)+'): '+p.h+'<span class="chip '+p.w+'">'+p.st+'</span></div>'}).join("")}
+  if(!a)a='<div class="meta">Nenhum compromisso registrado neste dia.</div>';
+  document.getElementById("brief").innerHTML=row("Às 8h",esc(b.onde_as_08h))+row("Agenda",a)+row("Riscos e soluções",riskHtml(b))+row("Próximos passos",nextHtml(b));
+}
+var _r=render;render=function(){_r();briefing()};
+document.getElementById("bdate").addEventListener("change",function(){document.getElementById("bout").hidden=true;briefing()});
+document.getElementById("bdl").addEventListener("click",async function(){
+  var d=document.getElementById("bdate").value,out=document.getElementById("bout");
+  try{var dl=window.claude&&await window.claude.use("downloads");if(!dl)throw{code:"unavailable"};await dl.save({filename:"briefing-"+d+".txt",data:btext(bdata(d))})}
+  catch(e){if(!e||e.code!=="declined"){out.hidden=false;out.textContent="O download só funciona na página publicada, aberta no claude.ai."}}
+});
+document.getElementById("bai").addEventListener("click",async function(){
+  var d=document.getElementById("bdate").value,out=document.getElementById("bout"),btn=this;
+  out.hidden=false;out.textContent="Escrevendo…";btn.disabled=true;
+  try{
+    var sample=window.claude&&await window.claude.use("sample");if(!sample)throw{code:"unavailable"};
+    var p="Você é assistente executiva. Com os dados abaixo (JSON), escreva em "+(LANG=="en"?"inglês americano":"português do Brasil")+" o briefing da manhã do executivo, com no máximo 120 palavras, tom direto. Sempre informe horários no fuso local entre parênteses, destaque conflitos e diga a ação recomendada. Texto corrido ou lista curta, sem markdown pesado. Não invente fatos.\n\nDados: "+JSON.stringify(Object.assign(bdata(d),{riscos:risks(bdata(d)),proximos_passos:nexts(bdata(d))}));
+    var r=await sample(p,{cache:false,onText:function(x){out.textContent=x.text}});out.textContent=r.text;
+  }catch(e){out.textContent=e&&e.code==="not_granted"?"Sem permissão para usar o Claude nesta página.":e&&e.code==="rate_limited"?"Muitas solicitações seguidas. Tente de novo em instantes.":e&&e.code==="unavailable"?"A escrita com IA só funciona na página publicada, aberta no claude.ai.":"Não consegui concluir: "+((e&&e.message)||"erro desconhecido")}
+  btn.disabled=false;
+});
+var TODAY=ymd(Date.now(),OWNER);
+var ORD={"bloqueada":0,"em andamento":1,"a fazer":2,"feita":3},PR={"alta":0,"média":1,"baixa":2};
+var tasks=[
+{t:"Confirmar early check-in no hotel de Manhattan",p:"Viagem NY e Londres",due:"2026-11-15",pri:"alta",st:"em andamento",risk:"",sol:""},
+{t:"Enviar a pauta da reunião aos participantes",p:"Reunião global",due:"2026-11-16",pri:"média",st:"a fazer",risk:"",sol:""},
+{t:"Conferir passaporte e exigências de entrada (EUA e Reino Unido)",p:"Viagem NY e Londres",due:"2026-11-12",pri:"alta",st:"bloqueada",risk:"Requisitos de entrada ainda não verificados",sol:"Checar os sites oficiais conforme a nacionalidade antes de emitir os bilhetes."}
+];
+try{var sv=localStorage.getItem("ea-tasks");if(sv){var pt=JSON.parse(sv);if(Array.isArray(pt))tasks=pt}}catch(e){}
+function saveT(){try{localStorage.setItem("ea-tasks",JSON.stringify(tasks))}catch(e){}}
+function br(d){if(!d)return"a definir";var a=d.split("-");return LANG=="en"?a[1]+"/"+a[2]+"/"+a[0]:a.reverse().join("/")}
+function renderTasks(){
+  var list=tasks.map(function(t,i){return{t:t,i:i}}).sort(function(a,b){return ORD[a.t.st]-ORD[b.t.st]||PR[a.t.pri]-PR[b.t.pri]||String(a.t.due).localeCompare(String(b.t.due))}),h="";
+  list.forEach(function(o){var t=o.t,late=t.st!="feita"&&t.due&&t.due<TODAY;
+    h+='<div class="task'+(t.st=="feita"?" done":"")+'"><div><b>'+esc(t.t)+'</b><div class="meta">'+esc(t.p||"Geral")+" · prazo "+br(t.due)+" · prioridade "+esc(t.pri)+(late?' <span class="tag">atrasada</span>':"")+'</div>'+(t.risk?'<div class="tag" style="margin-top:4px">Risco: '+esc(t.risk)+'</div><div class="meta">Proposta: '+esc(t.sol||"definir solução")+'</div>':"")+'</div><select data-i="'+o.i+'" aria-label="Status da tarefa">'+Object.keys(ORD).map(function(s){return'<option value="'+s+'"'+(s==t.st?" selected":"")+'>'+s+'</option>'}).join("")+'</select><button class="rm" data-d="'+o.i+'" aria-label="Excluir tarefa">excluir</button></div>';
+  });
+  document.getElementById("tasks").innerHTML=h||'<div class="meta">Nenhuma tarefa ainda. Adicione a primeira acima.</div>';
+  briefing();
+}
+document.getElementById("tasks").addEventListener("change",function(e){var s=e.target.closest("select");if(s){tasks[+s.dataset.i].st=s.value;saveT();renderTasks()}});
+document.getElementById("tasks").addEventListener("click",function(e){var b=e.target.closest(".rm");if(b){tasks.splice(+b.dataset.d,1);saveT();renderTasks()}});
+document.getElementById("ta").addEventListener("click",function(){
+  var g=function(id){return document.getElementById(id).value.trim()},h=document.getElementById("thint");
+  if(!g("tt")){h.textContent="Escreva o nome da tarefa.";return}
+  if(g("tr")&&!g("ts")){h.textContent="Todo risco precisa de uma proposta de solução.";return}
+  h.textContent="";tasks.push({t:g("tt"),p:"Geral",due:g("td"),pri:g("tp"),st:"a fazer",risk:g("tr"),sol:g("ts")});
+  ["tt","td","tr","ts"].forEach(function(id){document.getElementById(id).value=""});saveT();renderTasks();
+});
+function solFor(x){return/madrugada/.test(x)?"Oferecer dois horários dentro do expediente (botão Sugerir melhor horário) e avisar quem fica no limite.":/voo/.test(x)?"Mover a reunião para depois do pouso ou antes da decolagem e avisar todos hoje.":/early check-in/.test(x)?"Enviar hoje o e-mail ao hotel pedindo early check-in e guarda-malas (rascunho na seção Comunicação).":"Definir responsável e prazo para resolver."}
+function risks(b){var r=b.alertas.map(function(x){return{r:x,s:solFor(x)}});r=r.concat(connRisks(b.dia));tasks.forEach(function(t){if(t.risk&&t.st!="feita")r.push({r:t.t+": "+t.risk+".",s:t.sol||"Definir solução."})});tasks.forEach(function(t){if(t.st!="feita"&&t.due&&t.due<TODAY)r.push({r:"Tarefa atrasada: "+t.t+".",s:"Replanejar o prazo com o responsável ou reduzir o escopo."})});return r}
+function nexts(b){
+  var n=[],t0=wall(b.dia,0,0,OWNER),md=ymd(startMs(),OWNER);
+  var f=legsData.filter(function(l){return l.k=="fl"&&l.s>=t0}).sort(function(a,c){return a.s-c.s})[0];
+  if(f)n.push("Próximo voo: "+f.code+" ("+f.a+" → "+f.b+") em "+Math.round((f.s-t0)/86400000)+" dia(s). O check-in online costuma abrir 24h antes, por volta de "+day(f.s-86400000,f.az)+" às "+hm(f.s-86400000,f.az)+" (hora de "+ZONES[f.az]+").");
+  if(b.reuniao){var l=b.reuniao.parts.filter(function(p){return p.w!="w"}).map(function(p){return p.n});if(l.length)n.push("Confirmar presença de "+l.join(", ")+", que estão fora do expediente.")}
+  else if(md>b.dia)n.push("Enviar a pauta da reunião de "+br(md)+" até 24h antes.");
+  var due=tasks.filter(function(t){return t.st!="feita"&&t.due&&t.due<=b.dia});
+  if(due.length)n.push("Concluir ou replanejar: "+due.map(function(t){return t.t}).join("; ")+".");
+  return n;
+}
+function riskHtml(b){var r=risks(b);return r.length?r.map(function(x){return'<div style="margin-bottom:8px"><div class="tag">'+esc(x.r)+'</div><div class="meta">Proposta: '+esc(x.s)+'</div></div>'}).join(""):'<div class="meta">Nenhum risco aberto.</div>'}
+function nextHtml(b){var n=nexts(b);return n.length?n.map(function(x){return'<div style="margin-bottom:6px">'+esc(x)+'</div>'}).join(""):'<div class="meta">Nada pendente para este dia.</div>'}
+
+function ctx(){return{executivo_em:"São Paulo (America/Sao_Paulo)",reuniao:snap(),viagem:legsData.map(function(l){return l.k=="fl"?{tipo:"voo",codigo:l.code,de:l.a,para:l.b,saida_local:day(l.s,l.az)+" "+hm(l.s,l.az),chegada_local:day(l.e,l.bz)+" "+hm(l.e,l.bz)}:{tipo:"hotel",nome:l.name,cidade:l.c,endereco:l.addr||"",reserva:l.res||"",email_hotel:l.email||"",checkin_local:day(l.s,l.z)+" "+hm(l.s,l.z),checkout_local:day(l.e,l.z)+" "+hm(l.e,l.z)}}),stakeholders:SH.map(function(x){return{nome:x.n,cargo:x.r,email:x.e||"",personalidade:x.p,notas:x.t}}),tarefas_abertas:tasks.filter(function(t){return t.st!="feita"}).map(function(t){return{tarefa:t.t,prazo:t.due,status:t.st}})}}
+var KINDS={hotel:["E-mail ao hotel pedindo early check-in","Escreva um e-mail curto e cordial ao primeiro hotel da viagem pedindo early check-in e guarda-malas, citando o horário de chegada do voo no fuso local. Se houver número de reserva, cite-o; se houver e-mail do hotel, coloque-o na linha Para. Inclua a linha Assunto."],convite:["Convite da reunião para os participantes","Escreva o convite da reunião: data, duração, o horário de cada participante no seu fuso local, e um espaço [link da videochamada]. Inclua a linha Assunto."],pauta:["Pauta e preparação da reunião","Monte a pauta (objetivo, 3 a 5 tópicos com tempo, decisões esperadas) e uma lista curta de preparação para o executivo. Use [preencher] onde faltar informação sobre o assunto."],follow:["Follow-up com companhia aérea ou fornecedor","Escreva um follow-up pedindo confirmação de assento, bagagem e refeição especial para os voos listados. Inclua a linha Assunto."]};
+Object.keys(KINDS).forEach(function(k){var o=document.createElement("option");o.value=k;o.textContent=KINDS[k][0];document.getElementById("ck").appendChild(o)});
+document.getElementById("cg").addEventListener("click",async function(){
+  var out=document.getElementById("cout"),btn=this,k=KINDS[document.getElementById("ck").value],lang=document.getElementById("cl").value;
+  out.hidden=false;out.textContent="Escrevendo…";btn.disabled=true;
+  try{
+    var sample=window.claude&&await window.claude.use("sample");if(!sample)throw{code:"unavailable"};
+    var p="Você é assistente executiva de um executivo em São Paulo. Escreva em "+lang+". "+k[1]+" Tom profissional, objetivo e caloroso. Entregue apenas o texto final, sem comentários. Não invente dados: use [preencher] quando faltar informação.\n\nContexto (JSON): "+JSON.stringify(ctx());
+    var r=await sample(p,{cache:false,onText:function(x){out.textContent=x.text}});out.textContent=r.text;
+  }catch(e){out.textContent=e&&e.code==="not_granted"?"Sem permissão para usar o Claude nesta página.":e&&e.code==="rate_limited"?"Muitas solicitações seguidas. Tente de novo em instantes.":e&&e.code==="unavailable"?"A geração com IA só funciona na página publicada, aberta no claude.ai.":"Não consegui concluir: "+((e&&e.message)||"erro desconhecido")}
+  btn.disabled=false;
+});
+document.getElementById("cc").addEventListener("click",function(){
+  var o=document.getElementById("cout"),b=this;if(o.hidden)return;
+  var r=document.createRange();r.selectNodeContents(o);var s=getSelection();s.removeAllRanges();s.addRange(r);
+  var done=function(t){b.textContent=t;setTimeout(function(){b.textContent="Copiar"},2000)};
+  try{navigator.clipboard.writeText(o.textContent).then(function(){done("Copiado")},function(){done("Texto selecionado: use Ctrl+C")})}catch(e){done("Texto selecionado: use Ctrl+C")}
+});
+
+tools.push(
+{name:"criar_tarefa",description:"Cria uma tarefa. prazo AAAA-MM-DD; prioridade alta, média ou baixa; risco e solucao são opcionais, mas todo risco exige uma solução.",inputSchema:{type:"object",properties:{titulo:{type:"string"},prazo:{type:"string"},prioridade:{type:"string"},projeto:{type:"string"},risco:{type:"string"},solucao:{type:"string"}},required:["titulo"]},execute:function(i){need(i,"titulo");if(i.risco&&!i.solucao)throw new Error("Todo risco precisa de uma proposta de solução");used.push("criar_tarefa");tasks.push({t:String(i.titulo).slice(0,120),p:String(i.projeto||"Geral").slice(0,40),due:i.prazo||"",pri:PR[i.prioridade]!==undefined?i.prioridade:"média",st:"a fazer",risk:String(i.risco||"").slice(0,160),sol:String(i.solucao||"").slice(0,200)});saveT();renderTasks();return{ok:true,total:tasks.length}}},
+{name:"listar_tarefas",description:"Lista todas as tarefas com prazo, prioridade, status e riscos.",inputSchema:{type:"object",properties:{}},execute:function(){used.push("listar_tarefas");return tasks}},
+{name:"atualizar_tarefa",description:"Atualiza o status de uma tarefa localizada por parte do título. Status: a fazer, em andamento, bloqueada, feita.",inputSchema:{type:"object",properties:{titulo_parcial:{type:"string"},status:{type:"string"}},required:["titulo_parcial","status"]},execute:function(i){need(i,"titulo_parcial");need(i,"status");if(ORD[i.status]===undefined)throw new Error("Status inválido");var q=String(i.titulo_parcial).toLowerCase(),t=tasks.filter(function(x){return x.t.toLowerCase().indexOf(q)>=0})[0];if(!t)throw new Error("Tarefa não encontrada");used.push("atualizar_tarefa");t.st=i.status;saveT();renderTasks();return{ok:true,tarefa:t.t,status:t.st}}}
+);
+["Crie uma tarefa para reservar o transfer em Londres até 18/11, prioridade alta"].forEach(function(t){var b=document.createElement("button");b.textContent=t;b.addEventListener("click",function(){ask(t)});document.getElementById("chips").appendChild(b)});
+
+var LANG='pt',LOC='pt-BR';
+var CHIP={'Adicione a Priya (Dubai) e ache o melhor horário em 17/11':'Add Priya (Dubai) and find the best time on 11/17','Onde estarei às 13h do dia 20/11?':'Where will I be at 1 PM on 11/20?','Mova a reunião para 19/11 às 14h e me diga quem fica no limite':'Move the meeting to 11/19 at 2 PM and tell me who is borderline','Resuma os riscos da minha viagem':'Summarize the risks of my trip','Crie uma tarefa para reservar o transfer em Londres até 18/11, prioridade alta':'Create a task to book the London transfer by 11/18, high priority'};
+var EX={'Assistente':'Assistant','Enviar':'Send','Data':'Date','Início':'Start','Duração':'Duration','1 hora':'1 hour','Adicionar participante':'Add participant','Nome':'Name','Adicionar':'Add','Sugerir melhor horário':'Suggest best time','Alerta':'Alert','Tarefa':'Task','Prazo':'Due date','Prioridade':'Priority','Risco (opcional)':'Risk (optional)','Proposta de solução':'Proposed fix','Adicionar tarefa':'Add task','O que escrever':'What to write','Idioma':'Language','Inglês':'English','Português':'Portuguese','Gerar rascunho':'Generate draft','Copiar':'Copy','Dia':'Day','Escrever com IA':'Write with AI','Baixar .txt':'Download .txt','alta':'high','média':'medium','baixa':'low','a fazer':'to do','em andamento':'in progress','bloqueada':'blocked','feita':'done','Você':'You','remover':'remove','excluir':'delete','atrasada':'overdue','Bom horário':'Good time','Fora do expediente':'Outside work hours','Noite ou madrugada':'Night or overnight','Riscos e soluções':'Risks and fixes','Próximos passos':'Next steps','Às 8h':'At 8 AM','Excluir tarefa':'Delete task','Status da tarefa':'Task status','Mensagem para o assistente':'Message to the assistant','Nome do participante':'Participant name'};
+var PH=[['Painel do Executive Assistant','Executive Assistant Dashboard'],['Protótipo para planejar reuniões entre fusos horários e conferir a viagem do executivo, com cálculo automático de horários locais e duração dos voos.','Prototype for planning meetings across time zones and checking the executive’s trip, with automatic local times and flight durations.'],['Peça em linguagem natural. O assistente consulta e altera a reunião, os participantes e a viagem usando as ferramentas do painel.','Ask in plain language. The assistant reads and changes the meeting, the participants and the trip using the dashboard’s tools.'],['Ex.: adicione a Priya (Dubai) e ache o melhor horário','E.g., add Priya (Dubai) and find the best time'],['Planejar reunião','Plan a meeting'],['Horário interpretado no fuso escolhido em “Fuso da reunião” (padrão: São Paulo). Clique em uma hora da linha do tempo para mover a reunião.','Time is interpreted in the zone chosen under “Meeting time zone” (default: São Paulo). Click an hour on the timeline to move the meeting.'],['Expediente (9h–18h)','Work hours (9 AM–6 PM)'],['Cedo ou tarde (7h–9h, 18h–21h)','Early or late (7–9 AM, 6–9 PM)'],['Viagem e voos do CEO','CEO trip and flights'],['Escolha os aeroportos e os horários locais. Cada horário aparece no fuso do aeroporto e também no horário do Rio de Janeiro. A duração real é calculada em UTC.','Pick the airports and local times. Each time is shown in the airport’s time zone and also in Rio de Janeiro time. Actual duration is calculated in UTC.'],['Projetos e prioridades','Projects and priorities'],['Cada tarefa tem prazo, prioridade e status. Todo risco registrado precisa de uma proposta de solução, e os riscos entram sozinhos no briefing. Os dados ficam salvos neste navegador.','Every task has a due date, priority and status. Every logged risk needs a proposed fix, and risks flow into the briefing automatically. Data is saved in this browser.'],['Escreva o nome da tarefa.','Enter the task name.'],['Todo risco precisa de uma proposta de solução.','Every risk needs a proposed fix.'],['Nenhuma tarefa ainda. Adicione a primeira acima.','No tasks yet. Add the first one above.'],['Comunicação e preparação','Communication and prep'],['Rascunhos profissionais com os horários nos fusos certos, prontos para revisar e enviar.','Professional drafts with times in the right time zones, ready to review and send.'],['E-mail ao hotel pedindo early check-in','Email to hotel requesting early check-in'],['Convite da reunião para os participantes','Meeting invite for participants'],['Pauta e preparação da reunião','Meeting agenda and prep'],['Follow-up com companhia aérea ou fornecedor','Follow-up with airline or vendor'],['Briefing do dia','Daily briefing'],['Resumo da manhã do executivo, montado a partir da reunião e da viagem. Troque o dia para ver como ele muda.','The executive’s morning summary, built from the meeting and the trip. Change the day to see how it shifts.'],['Hotel em Manhattan','Hotel in Manhattan'],['Hotel em Mayfair','Hotel in Mayfair'],['Confirmar early check-in no hotel de Manhattan','Confirm early check-in at the Manhattan hotel'],['Enviar a pauta da reunião aos participantes','Send the meeting agenda to participants'],['Conferir passaporte e exigências de entrada (EUA e Reino Unido)','Check passport and entry requirements (US and UK)'],['Viagem NY e Londres','NY and London trip'],['Reunião global','Global meeting'],['Geral','General'],['Requisitos de entrada ainda não verificados','Entry requirements not yet verified'],['Checar os sites oficiais conforme a nacionalidade antes de emitir os bilhetes.','Check the official sites for your nationality before issuing tickets.'],['Nova York','New York'],['Londres','London'],['Tóquio','Tokyo'],['Lisboa','Lisbon'],['Singapura','Singapore'],['Remover ','Remove '],['no fuso de São Paulo','in São Paulo time'],['Onde você estará:','Where you’ll be:'],['Conflito com voo.','Conflicts with a flight.'],['Atenção:','Heads-up:'],['horário de madrugada para ','overnight hour for '],['em voo ','on flight '],[', sem conexão garantida.',', no guaranteed connectivity.'],[', onde serão ',', where it will be '],[' no horário local.',' local time.'],['Voo ','Flight '],[' · duração real ',' · actual duration '],[' · fuso do destino ',' · destination time zone '],['h em relação à origem','h from origin'],[' às ',' at '],[' diárias',' nights'],['Chegada em ','Arrival in '],[', mas o check-in só abre às ',', but check-in only opens at '],['. Pedir early check-in ou guarda-malas (','. Ask for early check-in or luggage storage ('],[' de espera).',' wait).'],['decola de ','departs '],[' pousa em ',' lands in '],[' (hora local).',' (local time).'],[', voo de ',', flight time '],[', fuso ',', time zone '],['Check-in no ','Check-in at '],[' a partir das ',' from '],['Check-out do ','Check-out of '],[' até ',' by '],['Chegada às ','Arrival at '],[' e check-in só às ',' and check-in only at '],[': pedir early check-in ou guarda-malas.',': ask for early check-in or luggage storage.'],['Reunião cai de madrugada ou à noite para: ','The meeting falls overnight or at night for: '],['A reunião conflita com um voo.','The meeting conflicts with a flight.'],['Reunião às ','Meeting at '],['Oferecer dois horários dentro do expediente (botão Sugerir melhor horário) e avisar quem fica no limite.','Offer two times within work hours (use Suggest best time) and let borderline attendees know.'],['Mover a reunião para depois do pouso ou antes da decolagem e avisar todos hoje.','Move the meeting to after landing or before takeoff and notify everyone today.'],['Enviar hoje o e-mail ao hotel pedindo early check-in e guarda-malas (rascunho na seção Comunicação).','Send the hotel email today requesting early check-in and luggage storage (draft in the Communication section).'],['Definir responsável e prazo para resolver.','Assign an owner and a deadline to resolve this.'],['Definir solução.','Define a fix.'],['Tarefa atrasada: ','Overdue task: '],['Replanejar o prazo com o responsável ou reduzir o escopo.','Reschedule with the owner or reduce the scope.'],['Proposta: ','Proposed fix: '],['Risco: ','Risk: '],['Próximo voo: ','Next flight: '],[' dia(s). O check-in online costuma abrir 24h antes, por volta de ',' day(s). Online check-in usually opens 24h before, around '],[' (hora de ',' (time in '],['Confirmar presença de ','Confirm attendance of '],[', que estão fora do expediente.',', who are outside work hours.'],['Enviar a pauta da reunião de ','Send the agenda for the meeting on '],[' até 24h antes.',' at least 24h ahead.'],['Concluir ou replanejar: ','Finish or reschedule: '],['Nenhum compromisso registrado neste dia.','No commitments logged for this day.'],['Nenhum risco aberto.','No open risks.'],['Nada pendente para este dia.','Nothing pending for this day.'],[' · prazo ',' · due '],['prioridade alta','priority high'],['prioridade média','priority medium'],['prioridade baixa','priority low'],['Pensando…','Thinking…'],['Escrevendo…','Writing…'],['Sem permissão para usar o Claude nesta página.','No permission to use Claude on this page.'],['Muitas solicitações seguidas. Tente de novo em instantes.','Too many requests in a row. Try again in a moment.'],['O assistente só funciona','The assistant only works'],['A escrita com IA só funciona','AI writing only works'],['A geração com IA só funciona','AI generation only works'],['O download só funciona','The download only works'],[' na página publicada, aberta no claude.ai.',' on the published page, opened on claude.ai.'],['Não consegui concluir: ','Couldn’t finish: '],['erro desconhecido','unknown error'],['Ferramentas usadas: ','Tools used: '],['Copiado','Copied'],['Texto selecionado: use Ctrl+C','Text selected: press Ctrl+C']];
+Object.keys(CHIP).forEach(function(k){PH.push([k,CHIP[k]])});
+PH.sort(function(a,b){return b[0].length-a[0].length});
+function trs(s){for(var i=0;i<PH.length;i++)if(s.indexOf(PH[i][0])>=0)s=s.split(PH[i][0]).join(PH[i][1]);return s}
+var ORIG=new WeakMap();
+function trText(s,ti){var k=s.trim(),r=Object.prototype.hasOwnProperty.call(EX,k)?s.replace(k,EX[k]):trs(s);return ti?r.replace(/ em /g,' in '):r}
+function trNode(n){
+  if(n.nodeType==3){var p=n.parentNode;if(!p||p.nodeName=='SCRIPT'||p.nodeName=='STYLE')return;var o=ORIG.has(n)?ORIG.get(n):n.nodeValue,r=trText(o);if(r!==o){ORIG.set(n,o);n.nodeValue=r}}
+  else if(n.nodeType==1&&n.nodeName!='SCRIPT'&&n.nodeName!='STYLE'){
+    ['placeholder','aria-label','title','label'].forEach(function(a){var v=n.getAttribute(a);if(v===null)return;n.__o=n.__o||{};var o=(a in n.__o)?n.__o[a]:v,r=trText(o,a=='title');if(r!==o){n.__o[a]=o;n.setAttribute(a,r)}});
+    n.childNodes.forEach(trNode);
+  }
+}
+function restore(){var w=document.createTreeWalker(document.body,NodeFilter.SHOW_ALL),n;while(n=w.nextNode()){if(n.nodeType==3&&ORIG.has(n)){n.nodeValue=ORIG.get(n);ORIG.delete(n)}else if(n.nodeType==1&&n.__o){for(var a in n.__o)n.setAttribute(a,n.__o[a]);n.__o=null}}}
+new MutationObserver(function(ms){if(LANG!='en')return;ms.forEach(function(m){m.addedNodes.forEach(trNode)})}).observe(document.body,{childList:true,subtree:true});
+function setLang(l){
+  restore();LANG=l;LOC=l=='en'?'en-US':'pt-BR';
+  document.documentElement.lang=LOC;
+  document.title=l=='en'?'Executive Assistant Dashboard':'Painel do Executive Assistant';buildZones();buildFF();buildHF();buildSH();
+  document.getElementById('lang').textContent=l=='en'?'Português (BR)':'English (US)';
+  trip();render();renderTasks();
+  if(l=='en')trNode(document.body);
+  try{localStorage.setItem('ea-lang',l)}catch(e){}
+}
+document.getElementById('lang').addEventListener('click',function(){setLang(LANG=='en'?'pt':'en')});
+var REF=OWNER,ZL=[],ZK='';
+var ISO=[['AR','America/Argentina/Buenos_Aires'],['AU','Australia/Sydney'],['AT','Europe/Vienna'],['BE','Europe/Brussels'],['BR','America/Sao_Paulo'],['CA','America/Toronto'],['CL','America/Santiago'],['CN','Asia/Shanghai'],['CO','America/Bogota'],['CZ','Europe/Prague'],['DK','Europe/Copenhagen'],['EG','Africa/Cairo'],['FI','Europe/Helsinki'],['FR','Europe/Paris'],['DE','Europe/Berlin'],['GR','Europe/Athens'],['HK','Asia/Hong_Kong'],['IN','Asia/Kolkata'],['ID','Asia/Jakarta'],['IE','Europe/Dublin'],['IL','Asia/Jerusalem'],['IT','Europe/Rome'],['JP','Asia/Tokyo'],['KE','Africa/Nairobi'],['MX','America/Mexico_City'],['NL','Europe/Amsterdam'],['NZ','Pacific/Auckland'],['NG','Africa/Lagos'],['NO','Europe/Oslo'],['PE','America/Lima'],['PH','Asia/Manila'],['PL','Europe/Warsaw'],['PT','Europe/Lisbon'],['QA','Asia/Qatar'],['RO','Europe/Bucharest'],['RU','Europe/Moscow'],['SA','Asia/Riyadh'],['SG','Asia/Singapore'],['ZA','Africa/Johannesburg'],['KR','Asia/Seoul'],['ES','Europe/Madrid'],['SE','Europe/Stockholm'],['CH','Europe/Zurich'],['TH','Asia/Bangkok'],['TR','Europe/Istanbul'],['AE','Asia/Dubai'],['GB','Europe/London'],['US','America/New_York'],['UY','America/Montevideo'],['VN','Asia/Ho_Chi_Minh'],['PK','Asia/Karachi'],['BD','Asia/Dhaka'],['MY','Asia/Kuala_Lumpur'],['UA','Europe/Kyiv'],['PY','America/Asuncion'],['EC','America/Guayaquil'],['VE','America/Caracas'],['BO','America/La_Paz'],['CR','America/Costa_Rica'],['PA','America/Panama'],['MA','Africa/Casablanca']];
+EX['Fuso da reunião']='Meeting time zone';EX['Buscar país, cidade ou GMT']='Search country, city or GMT';EX['Convidado']='Guest';
+PH.push(['ex.: Argentina, Tokyo, GMT+5','e.g., Argentina, Tokyo, GMT+5'],['Horas em ','Hours in '],['Países (fuso principal)','Countries (main time zone)'],['GMT (fuso fixo)','GMT (fixed offset)'],['Todos os fusos (cidades)','All time zones (cities)']);
+PH.sort(function(a,b){return b[0].length-a[0].length});
+function nrm(s){return s.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase()}
+function gmtOf(z){try{var s=f(Date.parse(state.date+'T12:00:00Z'),z,{timeZoneName:'longOffset'});return(s.match(/GMT\S*/)||['GMT'])[0]}catch(e){return ''}}
+function zoneList(){
+  var dn=null,out=[],all=[];try{dn=new Intl.DisplayNames(LOC,{type:'region'})}catch(e){}
+  ISO.forEach(function(p){var c=dn?dn.of(p[0]):p[0];out.push({g:0,z:p[1],t:c+' — '+p[1].split('/').pop().replace(/_/g,' ')+' ('+gmtOf(p[1])+')'})});
+  for(var n=-12;n<=14;n++)out.push({g:1,z:n==0?'Etc/GMT':'Etc/GMT'+(n>0?'-':'+')+Math.abs(n),t:'GMT'+(n>0?'+'+n:n<0?'−'+(-n):'')});
+  try{all=Intl.supportedValuesOf('timeZone')}catch(e){all=Object.keys(ZONES)}
+  all.forEach(function(z){out.push({g:2,z:z,t:z.split('/').pop().replace(/_/g,' ')+' ('+gmtOf(z)+')'})});
+  return out;
+}
+function zname(s){var o=s.options[s.selectedIndex];return o?o.textContent.replace(/ \(GMT.*$/,''):s.value}
+function ensureRef(){var r=document.getElementById('refz');r.value=REF;if(r.value!==REF){var o=document.createElement('option');o.value=REF;o.textContent=ZONES[REF]||REF;r.insertBefore(o,r.firstChild);r.value=REF}}
+function buildZones(){
+  var k=LOC+'|'+state.date,ch=k!==ZK;if(ch){ZK=k;ZL=zoneList()}
+  var q=nrm(document.getElementById('zq').value.trim()),a=document.getElementById('addz'),r=document.getElementById('refz'),G=['Países (fuso principal)','GMT (fuso fixo)','Todos os fusos (cidades)'];
+  function opts(useq){return [0,1,2].map(function(g){var it=ZL.filter(function(o){return o.g==g&&(!useq||!q||nrm(o.t+' '+o.z).indexOf(q)>=0)});return it.length?'<optgroup label="'+G[g]+'">'+it.map(function(o){return'<option value="'+o.z+'">'+esc(o.t)+'</option>'}).join('')+'</optgroup>':''}).join('')}
+  var av=a.value;a.innerHTML=opts(true);if(av)a.value=av;
+  if(ch||!r.options.length){r.innerHTML=opts(false);ensureRef()}
+}
+document.getElementById('zq').addEventListener('input',buildZones);
+document.getElementById('date').addEventListener('change',buildZones);
+document.getElementById('refz').addEventListener('change',function(){REF=this.value;if(!ZONES[REF])ZONES[REF]=zname(this);render()});
+tools.push({name:'definir_fuso_reuniao',description:'Muda o fuso de referência em que a data e a hora da reunião são interpretadas. Aceita um id IANA (ex.: Asia/Tokyo) ou um deslocamento GMT como Etc/GMT-5 (que significa GMT+5).',inputSchema:{type:'object',properties:{fuso_iana:{type:'string'}},required:['fuso_iana']},execute:function(i){need(i,'fuso_iana');try{new Intl.DateTimeFormat('en',{timeZone:i.fuso_iana})}catch(e){throw new Error('Fuso inválido')}used.push('definir_fuso_reuniao');REF=i.fuso_iana;if(!ZONES[REF])ZONES[REF]=REF.split('/').pop().replace(/_/g,' ');ensureRef();render();return snap()}});
+buildZones();
+var RIO='America/Sao_Paulo';
+function L(p,e){return LANG=='en'?e:p}
+var AP=`GRU|São Paulo (Guarulhos)|BR|America/Sao_Paulo
+CGH|São Paulo (Congonhas)|BR|America/Sao_Paulo
+VCP|Campinas (Viracopos)|BR|America/Sao_Paulo
+GIG|Rio de Janeiro (Galeão)|BR|America/Sao_Paulo
+SDU|Rio de Janeiro (Santos Dumont)|BR|America/Sao_Paulo
+BSB|Brasília|BR|America/Sao_Paulo
+CNF|Belo Horizonte (Confins)|BR|America/Sao_Paulo
+SSA|Salvador|BR|America/Bahia
+REC|Recife|BR|America/Recife
+FOR|Fortaleza|BR|America/Fortaleza
+POA|Porto Alegre|BR|America/Sao_Paulo
+CWB|Curitiba|BR|America/Sao_Paulo
+FLN|Florianópolis|BR|America/Sao_Paulo
+BEL|Belém|BR|America/Belem
+MAO|Manaus|BR|America/Manaus
+NAT|Natal|BR|America/Fortaleza
+MCZ|Maceió|BR|America/Maceio
+VIX|Vitória|BR|America/Sao_Paulo
+GYN|Goiânia|BR|America/Sao_Paulo
+CGB|Cuiabá|BR|America/Cuiaba
+SLZ|São Luís|BR|America/Fortaleza
+IGU|Foz do Iguaçu|BR|America/Sao_Paulo
+JFK|New York (JFK)|US|America/New_York
+EWR|Newark|US|America/New_York
+LGA|New York (LaGuardia)|US|America/New_York
+BOS|Boston|US|America/New_York
+IAD|Washington (Dulles)|US|America/New_York
+DCA|Washington (Reagan)|US|America/New_York
+ATL|Atlanta|US|America/New_York
+MIA|Miami|US|America/New_York
+MCO|Orlando|US|America/New_York
+FLL|Fort Lauderdale|US|America/New_York
+ORD|Chicago (O’Hare)|US|America/Chicago
+DFW|Dallas (Fort Worth)|US|America/Chicago
+IAH|Houston|US|America/Chicago
+DEN|Denver|US|America/Denver
+PHX|Phoenix|US|America/Phoenix
+LAX|Los Angeles|US|America/Los_Angeles
+SFO|San Francisco|US|America/Los_Angeles
+SEA|Seattle|US|America/Los_Angeles
+LAS|Las Vegas|US|America/Los_Angeles
+YYZ|Toronto|CA|America/Toronto
+YUL|Montréal|CA|America/Toronto
+YVR|Vancouver|CA|America/Vancouver
+MEX|Mexico City|MX|America/Mexico_City
+CUN|Cancún|MX|America/Cancun
+PTY|Panama City|PA|America/Panama
+BOG|Bogotá|CO|America/Bogota
+MDE|Medellín|CO|America/Bogota
+LIM|Lima|PE|America/Lima
+SCL|Santiago|CL|America/Santiago
+EZE|Buenos Aires (Ezeiza)|AR|America/Argentina/Buenos_Aires
+AEP|Buenos Aires (Aeroparque)|AR|America/Argentina/Buenos_Aires
+MVD|Montevideo|UY|America/Montevideo
+ASU|Asunción|PY|America/Asuncion
+UIO|Quito|EC|America/Guayaquil
+CCS|Caracas|VE|America/Caracas
+SJO|San José|CR|America/Costa_Rica
+LHR|London (Heathrow)|GB|Europe/London
+LGW|London (Gatwick)|GB|Europe/London
+CDG|Paris (Charles de Gaulle)|FR|Europe/Paris
+AMS|Amsterdam|NL|Europe/Amsterdam
+FRA|Frankfurt|DE|Europe/Berlin
+MUC|Munich|DE|Europe/Berlin
+BER|Berlin|DE|Europe/Berlin
+MAD|Madrid|ES|Europe/Madrid
+BCN|Barcelona|ES|Europe/Madrid
+LIS|Lisbon|PT|Europe/Lisbon
+OPO|Porto|PT|Europe/Lisbon
+FCO|Rome (Fiumicino)|IT|Europe/Rome
+MXP|Milan (Malpensa)|IT|Europe/Rome
+ZRH|Zurich|CH|Europe/Zurich
+GVA|Geneva|CH|Europe/Zurich
+VIE|Vienna|AT|Europe/Vienna
+BRU|Brussels|BE|Europe/Brussels
+CPH|Copenhagen|DK|Europe/Copenhagen
+ARN|Stockholm (Arlanda)|SE|Europe/Stockholm
+OSL|Oslo|NO|Europe/Oslo
+HEL|Helsinki|FI|Europe/Helsinki
+DUB|Dublin|IE|Europe/Dublin
+ATH|Athens|GR|Europe/Athens
+IST|Istanbul|TR|Europe/Istanbul
+WAW|Warsaw|PL|Europe/Warsaw
+PRG|Prague|CZ|Europe/Prague
+BUD|Budapest|HU|Europe/Budapest
+SVO|Moscow (Sheremetyevo)|RU|Europe/Moscow
+KEF|Reykjavik|IS|Atlantic/Reykjavik
+DXB|Dubai|AE|Asia/Dubai
+AUH|Abu Dhabi|AE|Asia/Dubai
+DOH|Doha|QA|Asia/Qatar
+RUH|Riyadh|SA|Asia/Riyadh
+JED|Jeddah|SA|Asia/Riyadh
+TLV|Tel Aviv|IL|Asia/Jerusalem
+CAI|Cairo|EG|Africa/Cairo
+CMN|Casablanca|MA|Africa/Casablanca
+JNB|Johannesburg|ZA|Africa/Johannesburg
+CPT|Cape Town|ZA|Africa/Johannesburg
+LOS|Lagos|NG|Africa/Lagos
+NBO|Nairobi|KE|Africa/Nairobi
+ADD|Addis Ababa|ET|Africa/Addis_Ababa
+LAD|Luanda|AO|Africa/Luanda
+DEL|Delhi|IN|Asia/Kolkata
+BOM|Mumbai|IN|Asia/Kolkata
+BLR|Bengaluru|IN|Asia/Kolkata
+SIN|Singapore|SG|Asia/Singapore
+BKK|Bangkok|TH|Asia/Bangkok
+KUL|Kuala Lumpur|MY|Asia/Kuala_Lumpur
+CGK|Jakarta|ID|Asia/Jakarta
+MNL|Manila|PH|Asia/Manila
+HKG|Hong Kong|HK|Asia/Hong_Kong
+PEK|Beijing (Capital)|CN|Asia/Shanghai
+PVG|Shanghai (Pudong)|CN|Asia/Shanghai
+CAN|Guangzhou|CN|Asia/Shanghai
+ICN|Seoul (Incheon)|KR|Asia/Seoul
+HND|Tokyo (Haneda)|JP|Asia/Tokyo
+NRT|Tokyo (Narita)|JP|Asia/Tokyo
+KIX|Osaka (Kansai)|JP|Asia/Tokyo
+TPE|Taipei|TW|Asia/Taipei
+SGN|Ho Chi Minh City|VN|Asia/Ho_Chi_Minh
+HAN|Hanoi|VN|Asia/Ho_Chi_Minh
+KHI|Karachi|PK|Asia/Karachi
+DAC|Dhaka|BD|Asia/Dhaka
+CMB|Colombo|LK|Asia/Colombo
+SYD|Sydney|AU|Australia/Sydney
+MEL|Melbourne|AU|Australia/Melbourne
+BNE|Brisbane|AU|Australia/Brisbane
+PER|Perth|AU|Australia/Perth
+AKL|Auckland|NZ|Pacific/Auckland`;
+var APT=AP.split('\n').map(function(l){var p=l.split('|');return{c:p[0],n:p[1],i:p[2],z:p[3]}});
+function apByCode(c){c=String(c||'').toUpperCase();return APT.filter(function(a){return a.c==c})[0]||null}
+function ahead(ms,z){var d=Math.round((off(ms,z)-off(ms,RIO))/360000)/10;return d==0?L('mesmo horário do Rio','same time as Rio'):(d>0?'+':'−')+Math.abs(d)+'h '+L('em relação ao Rio','vs. Rio')}
+function side(t,c,city,ms,z){return'<div><div class="meta"><b>'+t+' · '+esc(c)+'</b> · '+esc(city)+'</div><div class="big">'+day(ms,z)+' '+hm(ms,z)+'</div><div class="meta">'+L('horário local do aeroporto','airport local time')+' ('+f(ms,z,{timeZoneName:'short'}).split(' ').pop()+')</div><div class="rio">'+L('No Rio de Janeiro: ','In Rio de Janeiro: ')+'<b>'+day(ms,RIO)+' '+hm(ms,RIO)+'</b> · '+ahead(ms,z)+'</div></div>'}
+function where(ms){
+  var fl=legsData.filter(function(l){return l.k=='fl'}).sort(function(a,b){return a.s-b.s});
+  if(!fl.length)return{t:'São Paulo, onde serão '+hm(ms,OWNER)+' no horário local.'};
+  for(var i=0;i<fl.length;i++)if(ms>=fl[i].s&&ms<fl[i].e)return{flight:1,t:'em voo '+fl[i].a+' → '+fl[i].b+' ('+fl[i].code+'), sem conexão garantida.'};
+  var c=fl[0].ac,tz=fl[0].az;fl.forEach(function(l){if(ms>=l.e){c=l.bc;tz=l.bz}});
+  return{t:c+', onde serão '+hm(ms,tz)+' no horário local.'};
+}
+function trip(){
+  legsData.sort(function(a,b){return a.s-b.s});
+  var h='';
+  legsData.forEach(function(l,i){
+    var rm='<button class="rm" data-r="'+i+'" aria-label="'+L('Remover','Remove')+'">'+L('remover','remove')+'</button>';
+    if(l.k=='fl'){
+      h+=layover(l,i);var diff=Math.round((off(l.e,l.bz)-off(l.s,l.az))/360000)/10;
+      h+='<div class="leg"><div class="k">'+L('Voo','Flight')+(l.code?' '+esc(l.code):'')+'</div><div><div class="big">'+esc(l.a)+' → '+esc(l.b)+' · '+dh(l.e-l.s)+rm+'</div><div class="two">'+side(L('Decolagem','Takeoff'),l.a,l.ac,l.s,l.az)+side(L('Pouso','Landing'),l.b,l.bc,l.e,l.bz)+'</div><div class="meta" style="margin-top:8px">'+L('Duração real ','Actual duration ')+dh(l.e-l.s)+' · '+L('diferença de fuso entre origem e destino: ','time zone difference, origin to destination: ')+(diff>=0?'+':'−')+Math.abs(diff)+'h</div></div></div>';
+    }else{
+      var n=Math.round((l.e-l.s)/86400000);
+      h+='<div class="leg"><div class="k">Hotel</div><div><div class="big">'+esc(l.name)+rm+'</div><div class="meta">'+esc(l.c)+' · check-in '+day(l.s,l.z)+' '+L('às','at')+' '+hm(l.s,l.z)+' · check-out '+day(l.e,l.z)+' '+L('às','at')+' '+hm(l.e,l.z)+' · '+n+' '+L('diárias','nights')+'</div>'+hotelExtra(l)+'</div></div>';
+    }
+  });
+  legsData.forEach(function(a){if(a.k!='fl')return;legsData.forEach(function(x){if(x.k=='ht'&&x.z==a.bz&&ymd(x.s,x.z)==ymd(a.e,a.bz)&&x.s>a.e)h+='<div class="leg"><div class="k">'+L('Alerta','Alert')+'</div><div class="meta" style="margin:0">'+L('Chegada em ','Arrival in ')+esc(a.bc)+L(' às ',' at ')+hm(a.e,a.bz)+L(', mas o check-in só abre às ',', but check-in only opens at ')+hm(x.s,x.z)+L('. Pedir early check-in ou guarda-malas (','. Ask for early check-in or luggage storage (')+dh(x.s-a.e)+L(' de espera).',' wait).')+'</div></div>'})});
+  saveL();document.getElementById('legs').innerHTML=h||'<div class="meta" style="margin-top:12px">'+L('Nenhum voo ou hotel. Adicione o primeiro acima.','No flights or hotels yet. Add the first one above.')+'</div>';
+}
+document.getElementById('legs').addEventListener('click',function(e){var b=e.target.closest('.rm');if(b){legsData.splice(+b.dataset.r,1);trip();render()}});
+function pushFlight(code,A,B,t1,t2){
+  var a=t1.split('T'),b=t2.split('T');if(a.length<2||b.length<2)return 'dt';
+  var s=wall(a[0],+a[1].slice(0,2),+a[1].slice(3,5),A.z),e=wall(b[0],+b[1].slice(0,2),+b[1].slice(3,5),B.z);
+  if(!(e>s)||e-s>36*3600000)return 'range';
+  if(window.NC&&!legsData.some(function(x){return x.k=='fl'&&x.e<=s}))return 'conn';
+  legsData.push({k:'fl',conn:!!window.NC,code:String(code||'').slice(0,12),a:A.c,az:A.z,ac:A.n,b:B.c,bz:B.z,bc:B.n,s:s,e:e});trip();render();return '';
+}
+function flightsInfo(){return legsData.filter(function(l){return l.k=='fl'}).map(function(l){return{voo:l.code,de:l.a+' '+l.ac,para:l.b+' '+l.bc,decolagem_local:day(l.s,l.az)+' '+hm(l.s,l.az),decolagem_no_rio:day(l.s,RIO)+' '+hm(l.s,RIO),pouso_local:day(l.e,l.bz)+' '+hm(l.e,l.bz),pouso_no_rio:day(l.e,RIO)+' '+hm(l.e,RIO),duracao:dh(l.e-l.s)}})}
+function showC(p){document.getElementById(p+'c').hidden=document.getElementById(p+'s').value!=='__c'}
+function fillAp(p){
+  var s=document.getElementById(p+'s'),q=nrm(document.getElementById(p+'q').value.trim()),v=s.value,dn=null;
+  try{dn=new Intl.DisplayNames(LOC,{type:'region'})}catch(e){}
+  var it=APT.filter(function(a){return!q||nrm(a.c+' '+a.n+' '+(dn?dn.of(a.i):a.i)).indexOf(q)>=0});
+  s.innerHTML=it.map(function(a){return'<option value="'+a.c+'">'+esc(a.c+' — '+a.n+', '+(dn?dn.of(a.i):a.i))+'</option>'}).join('')+'<option value="__c">'+L('Outro aeroporto (digitar)','Other airport (type it in)')+'</option>';
+  for(var i=0;i<s.options.length;i++)if(s.options[i].value==v)s.value=v;
+  showC(p);
+}
+function getAp(p){
+  var v=document.getElementById(p+'s').value;
+  if(v=='__c'){var c=document.getElementById(p+'k').value.trim().toUpperCase(),y=document.getElementById(p+'y').value.trim();return c&&y?{c:c.slice(0,4),n:y.slice(0,40),z:document.getElementById(p+'z').value}:null}
+  return apByCode(v);
+}
+function apBox(p,title){return'<div class="apbox"><b>'+title+'</b><div class="controls" style="margin:8px 0 0"><label>'+L('Buscar aeroporto','Search airport')+'<input id="'+p+'q" placeholder="'+L('GRU, Lisboa, Japão','GRU, Lisbon, Japan')+'" style="width:160px"></label><label>'+L('Aeroporto','Airport')+'<select id="'+p+'s" style="max-width:290px"></select></label><label>'+L('Data e hora locais do aeroporto','Airport local date and time')+'<input type="datetime-local" id="'+p+'t"></label></div><div class="controls" id="'+p+'c" hidden style="margin:8px 0 0"><label>'+L('Código','Code')+'<input id="'+p+'k" style="width:70px" maxlength="4"></label><label>'+L('Cidade','City')+'<input id="'+p+'y" style="width:150px"></label><label>'+L('Fuso do aeroporto','Airport time zone')+'<select id="'+p+'z" style="max-width:250px"></select></label></div></div>'}
+function buildFF(){
+  document.getElementById('fform').innerHTML='<div class="controls"><label>'+L('Código do voo','Flight code')+'<input id="fcode" placeholder="LA 8180" style="width:120px"></label><label style="flex-direction:row;align-items:center;gap:6px;color:var(--ink)"><input type="checkbox" id="fconn" style="padding:0">'+L('É uma conexão do voo anterior (escala)','This is a connection from the previous flight (layover)')+'</label></div>'+apBox('fa',L('Origem (decolagem)','Origin (takeoff)'))+apBox('fb',L('Destino (pouso)','Destination (landing)'))+'<div class="controls"><button id="fadd" class="primary">'+L('Adicionar voo','Add flight')+'</button></div><div class="tag" id="fh"></div>';
+  ['fa','fb'].forEach(function(p){
+    document.getElementById(p+'z').innerHTML=document.getElementById('refz').innerHTML;document.getElementById(p+'z').value=OWNER;
+    fillAp(p);
+    document.getElementById(p+'q').addEventListener('input',function(){fillAp(p)});
+    document.getElementById(p+'s').addEventListener('change',function(){showC(p)});
+  });
+  document.getElementById('fconn').addEventListener('change',function(){
+    if(!this.checked)return;
+    var fl=legsData.filter(function(x){return x.k=='fl'}).sort(function(a,b){return b.e-a.e});
+    if(!fl.length||!apByCode(fl[0].b))return;
+    document.getElementById('faq').value='';fillAp('fa');document.getElementById('fas').value=fl[0].b;showC('fa');
+  });
+  document.getElementById('fadd').addEventListener('click',function(){
+    var A=getAp('fa'),B=getAp('fb'),t1=document.getElementById('fat').value,t2=document.getElementById('fbt').value,h=document.getElementById('fh');
+    if(!A||!B||!t1||!t2){h.textContent=L('Escolha os dois aeroportos (ou preencha código e cidade) e as duas datas e horas.','Choose both airports (or fill in code and city) and both dates and times.');return}
+    window.NC=document.getElementById('fconn').checked;var r=pushFlight(document.getElementById('fcode').value.trim(),A,B,t1,t2);
+    window.NC=false;h.textContent=r=='conn'?L('Para marcar como conexão, cadastre antes um voo que chegue antes desta decolagem.','To mark a connection, add a flight that lands before this takeoff first.'):r?L('O pouso precisa ser depois da decolagem, e o voo pode ter no máximo 36h. Confira as datas, horas e fusos.','Landing must be after takeoff, and the flight at most 36h. Check the dates, times and time zones.'):'';
+  });
+}
+tools.push(
+{name:'adicionar_voo',description:'Adiciona um voo usando códigos IATA de aeroportos da lista (ex.: GRU, JFK, LHR). saida_local e chegada_local no formato AAAA-MM-DDTHH:MM, no horário local de cada aeroporto.',inputSchema:{type:'object',properties:{codigo_voo:{type:'string'},conexao:{type:'boolean'},de:{type:'string'},para:{type:'string'},saida_local:{type:'string'},chegada_local:{type:'string'}},required:['de','para','saida_local','chegada_local']},execute:function(i){need(i,'de');need(i,'para');need(i,'saida_local');need(i,'chegada_local');var A=apByCode(i.de),B=apByCode(i.para);if(!A||!B)throw new Error('Aeroporto fora da lista. Peça ao usuário para usar o formulário com a opção Outro aeroporto.');window.NC=!!i.conexao;var r=pushFlight(i.codigo_voo,A,B,i.saida_local,i.chegada_local);window.NC=false;if(r)throw new Error('Datas inválidas: o pouso deve ser depois da decolagem e o voo ter no máximo 36h');used.push('adicionar_voo');return flightsInfo()}},
+{name:'listar_voos',description:'Lista os voos com horário local de cada aeroporto e o horário correspondente no Rio de Janeiro.',inputSchema:{type:'object',properties:{}},execute:function(){used.push('listar_voos');return flightsInfo()}}
+);
+try{var sl=localStorage.getItem('ea-legs');if(sl){var pl=JSON.parse(sl);if(Array.isArray(pl))legsData=pl.filter(function(l){return l&&isFinite(l.s)&&isFinite(l.e)})}}catch(e){}
+function saveL(){try{localStorage.setItem('ea-legs',JSON.stringify(legsData))}catch(e){}}
+var SH=[],shEdit=-1;
+try{var s0=localStorage.getItem('ea-sh');if(s0){var p0=JSON.parse(s0);if(Array.isArray(p0))SH=p0}}catch(e){}
+function saveSH(){try{localStorage.setItem('ea-sh',JSON.stringify(SH))}catch(e){}}
+function selZ(s,v,lab){s.value=v;if(s.value!==v){var o=document.createElement('option');o.value=v;o.textContent=lab||v;s.insertBefore(o,s.firstChild);s.value=v}}
+function connInfo(){var fl=legsData.filter(function(x){return x.k=='fl'}).sort(function(a,b){return a.s-b.s}),o=[];fl.forEach(function(l,i){if(l.conn&&i>0)o.push({p:fl[i-1],l:l,w:l.s-fl[i-1].e})});return o}
+function connRisks(d){var r=[];connInfo().forEach(function(c){
+  if(ymd(c.p.e,c.p.bz)!=d&&ymd(c.l.s,c.l.az)!=d)return;
+  if(c.w>=0&&c.w<5400000)r.push({r:L('Conexão apertada em ','Tight connection in ')+c.p.b+': '+dh(c.w)+'.',s:L('Confirmar o tempo mínimo de conexão e a bagagem com a companhia e anotar um voo alternativo.','Confirm the minimum connection time and baggage with the airline and note a backup flight.')});
+  if(c.w>28800000)r.push({r:L('Espera longa em ','Long layover in ')+c.p.b+': '+dh(c.w)+'.',s:L('Avaliar lounge, day room ou um voo anterior.','Consider a lounge, a day room or an earlier flight.')});
+  if(c.p.b!=c.l.a)r.push({r:L('Troca de aeroporto: ','Airport change: ')+c.p.b+' → '+c.l.a+'.',s:L('Reservar transfer e somar tempo extra para o deslocamento.','Book a transfer and add extra time for the trip between airports.')});
+});return r}
+function layover(l,i){
+  if(!l.conn)return '';
+  var p=null;for(var j=i-1;j>=0;j--)if(legsData[j].k=='fl'){p=legsData[j];break}
+  if(!p)return '';
+  var w=l.s-p.e,fl='';if(w<0)return '';
+  if(w<5400000)fl+='<div class="tag">'+L('Conexão apertada: confirme o tempo mínimo de conexão e a bagagem.','Tight connection: confirm the minimum connection time and baggage.')+'</div>';
+  if(w>28800000)fl+='<div class="tag">'+L('Espera longa: avalie lounge ou day room.','Long layover: consider a lounge or a day room.')+'</div>';
+  if(p.b!=l.a)fl+='<div class="tag">'+L('Troca de aeroporto: ','Airport change: ')+esc(p.b)+' → '+esc(l.a)+'. '+L('Reserve transfer e tempo extra.','Book a transfer and extra time.')+'</div>';
+  return'<div class="leg"><div class="k">'+L('Escala','Layover')+'</div><div><div class="big">'+esc(p.b)+' · '+dh(w)+' '+L('de espera','wait')+'</div><div class="meta">'+esc(p.bc)+': '+L('chega ','lands ')+day(p.e,p.bz)+' '+hm(p.e,p.bz)+L(', o próximo voo parte ',', the next flight departs ')+day(l.s,l.az)+' '+hm(l.s,l.az)+' ('+L('hora local','local time')+')</div>'+fl+'</div></div>';
+}
+function hotelExtra(l){
+  var h='<div class="two" style="margin-top:8px"><div class="rio">'+L('Check-in no Rio: ','Check-in in Rio: ')+'<b>'+day(l.s,RIO)+' '+hm(l.s,RIO)+'</b></div><div class="rio">'+L('Check-out no Rio: ','Check-out in Rio: ')+'<b>'+day(l.e,RIO)+' '+hm(l.e,RIO)+'</b></div></div>';
+  if(l.addr)h+='<div class="meta" style="margin-top:6px">'+L('Endereço: ','Address: ')+esc(l.addr)+'</div>';
+  if(l.res)h+='<div class="meta">'+L('Reserva: ','Booking: ')+'<b>'+esc(l.res)+'</b></div>';
+  if(l.email)h+='<div class="meta">'+L('E-mail: ','Email: ')+esc(l.email)+'</div>';
+  if(l.notes)h+='<div class="meta" style="white-space:pre-wrap">'+esc(l.notes)+'</div>';
+  return h;
+}
+function buildHF(){
+  var last=legsData.filter(function(x){return x.k=='fl'}).sort(function(a,b){return b.e-a.e})[0];
+  document.getElementById('hform').innerHTML='<div class="apbox"><b>'+L('Hotel e reserva','Hotel and reservation')+'</b><div class="controls" style="margin:8px 0 0"><label>'+L('Nome do hotel','Hotel name')+'<input id="hn" style="width:220px"></label><label>'+L('Endereço','Address')+'<input id="hadr" style="width:300px"></label><label>'+L('Nº da reserva','Booking number')+'<input id="hres" style="width:140px"></label><label>'+L('E-mail do hotel','Hotel email')+'<input id="hem" type="email" style="width:200px"></label></div><div class="controls" style="margin:8px 0 0"><label>'+L('Cidade','City')+'<input id="hc" style="width:150px" value="'+esc(last?last.bc:'')+'"></label><label>'+L('Fuso do hotel','Hotel time zone')+'<select id="hz" style="max-width:250px"></select></label><label>Check-in ('+L('hora local','local time')+')<input type="datetime-local" id="hin"></label><label>Check-out ('+L('hora local','local time')+')<input type="datetime-local" id="hout"></label></div><div class="controls" style="margin:8px 0 0"><label>'+L('Observações (opcional)','Notes (optional)')+'<input id="hnote" style="width:420px"></label><button id="hadd" class="primary">'+L('Adicionar hotel','Add hotel')+'</button></div><div class="tag" id="hh"></div></div>';
+  var z=document.getElementById('hz');z.innerHTML=document.getElementById('refz').innerHTML;selZ(z,last?last.bz:OWNER,last?last.bc:'');
+  document.getElementById('hadd').addEventListener('click',function(){
+    var g=function(id){return document.getElementById(id).value.trim()},h=document.getElementById('hh'),a=g('hin'),b=g('hout');
+    if(!g('hn')||!a||!b){h.textContent=L('Informe o nome do hotel e as datas e horas de check-in e check-out.','Enter the hotel name and the check-in and check-out dates and times.');return}
+    var zz=document.getElementById('hz').value,p=a.split('T'),q=b.split('T');
+    var s=wall(p[0],+p[1].slice(0,2),+p[1].slice(3,5),zz),e=wall(q[0],+q[1].slice(0,2),+q[1].slice(3,5),zz);
+    if(!(e>s)){h.textContent=L('O check-out precisa ser depois do check-in.','Check-out must be after check-in.');return}
+    h.textContent='';
+    legsData.push({k:'ht',name:g('hn').slice(0,80),addr:g('hadr').slice(0,160),res:g('hres').slice(0,40),email:g('hem').slice(0,120),notes:g('hnote').slice(0,200),c:(g('hc')||zname(document.getElementById('hz'))).slice(0,40),z:zz,s:s,e:e});
+    ['hn','hadr','hres','hem','hnote','hin','hout'].forEach(function(id){document.getElementById(id).value=''});
+    trip();render();
+  });
+}
+function buildSH(){
+  var ed=shEdit>=0;
+  document.getElementById('shbox').innerHTML='<h2 id="h-sh">Stakeholders</h2><p class="meta" style="margin:0">'+L('Registre quem é quem: nome, cargo, fuso, como a pessoa é e o que mais quiser anotar. Fica salvo só neste navegador.','Keep track of who is who: name, role, time zone, what the person is like and anything else you want to note. Saved only in this browser.')+'</p><div class="controls"><label>'+L('Nome','Name')+'<input id="shn" style="width:170px"></label><label>'+L('Cargo ou empresa','Role or company')+'<input id="shr" style="width:200px"></label><label>'+L('E-mail','Email')+'<input id="she" type="email" style="width:210px"></label><label>'+L('Fuso (opcional)','Time zone (optional)')+'<select id="shz" style="max-width:240px"></select></label></div><div class="controls"><label style="flex:1;min-width:260px">'+L('Personalidade e estilo','Personality and style')+'<textarea id="shp" rows="3" placeholder="'+L('Ex.: direto, não gosta de atrasos, prefere e-mail curto','E.g., direct, dislikes delays, prefers short emails')+'"></textarea></label><label style="flex:1;min-width:260px">'+L('Anotações livres','Free notes')+'<textarea id="sht" rows="3"></textarea></label></div><div class="controls" style="margin-top:0"><button id="sha" class="primary">'+(ed?L('Salvar alterações','Save changes'):L('Adicionar stakeholder','Add stakeholder'))+'</button><button id="shc"'+(ed?'':' hidden')+'>'+L('Cancelar','Cancel')+'</button></div><div class="tag" id="shh"></div><div id="shl"></div>';
+  var z=document.getElementById('shz');z.innerHTML='<option value="">'+L('Sem fuso','No time zone')+'</option>'+document.getElementById('refz').innerHTML;z.value='';
+  renderSH();
+}
+function renderSH(){
+  var h=SH.map(function(x,i){return'<div class="task" style="grid-template-columns:1fr auto"><div><b>'+esc(x.n)+'</b>'+(x.r?' <span class="meta">· '+esc(x.r)+'</span>':'')+(x.e?'<div class="meta">'+L('E-mail: ','Email: ')+esc(x.e)+'</div>':'')+(x.z?'<div class="meta">'+esc(ZONES[x.z]||x.z.split('/').pop().replace(/_/g,' '))+' · '+L('agora lá: ','now there: ')+hm(Date.now(),x.z)+'</div>':'')+(x.p?'<div style="margin-top:6px;white-space:pre-wrap"><b>'+L('Personalidade: ','Personality: ')+'</b>'+esc(x.p)+'</div>':'')+(x.t?'<div class="meta" style="margin-top:6px;white-space:pre-wrap">'+esc(x.t)+'</div>':'')+'<div class="ai" id="sho'+i+'" hidden></div></div><div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end"><button class="rm" data-e="'+i+'">'+L('editar','edit')+'</button>'+(x.z?'<button class="rm" data-m="'+i+'">'+L('adicionar à reunião','add to meeting')+'</button>':'')+'<button class="rm" data-a="'+i+'">'+L('dicas de abordagem (IA)','approach tips (AI)')+'</button><button class="rm" data-x="'+i+'">'+L('excluir','delete')+'</button></div></div>'}).join('');
+  document.getElementById('shl').innerHTML=h||'<div class="meta">'+L('Nenhum stakeholder ainda.','No stakeholders yet.')+'</div>';
+}
+function saveSh(){
+  var g=function(id){return document.getElementById(id).value.trim()},h=document.getElementById('shh');
+  if(!g('shn')){h.textContent=L('Escreva o nome do stakeholder.','Enter the stakeholder’s name.');return}
+  var o={n:g('shn').slice(0,80),r:g('shr').slice(0,100),e:g('she').slice(0,120),z:document.getElementById('shz').value,p:g('shp').slice(0,1500),t:g('sht').slice(0,3000)};
+  if(shEdit>=0)SH[shEdit]=o;else SH.push(o);
+  shEdit=-1;saveSH();buildSH();
+}
+async function tips(i){
+  var x=SH[i],o=document.getElementById('sho'+i);o.hidden=false;o.textContent=L('Escrevendo…','Writing…');
+  try{
+    var sample=window.claude&&await window.claude.use('sample');if(!sample)throw{code:'unavailable'};
+    var p='Você é assistente executiva. Com base nas anotações abaixo sobre um stakeholder, escreva em '+(LANG=='en'?'inglês americano':'português do Brasil')+' dicas práticas, em no máximo 100 palavras, para o CEO e a equipe se prepararem para uma reunião ou e-mail com essa pessoa (tom, o que evitar, como abrir a conversa). Use apenas o que está nas anotações; se faltar informação, diga o que seria útil descobrir.\n\nDados: '+JSON.stringify({nome:x.n,cargo:x.r,personalidade:x.p,notas:x.t});
+    var r=await sample(p,{cache:false,onText:function(t){o.textContent=t.text}});o.textContent=r.text;
+  }catch(e){o.textContent=e&&e.code==='not_granted'?L('Sem permissão para usar o Claude nesta página.','No permission to use Claude on this page.'):e&&e.code==='unavailable'?L('Esta função só funciona na página publicada, aberta no claude.ai.','This feature only works on the published page, opened on claude.ai.'):L('Não consegui concluir: ','Couldn’t finish: ')+((e&&e.message)||'');}
+}
+document.getElementById('shbox').addEventListener('click',function(e){
+  var b=e.target.closest('button');if(!b)return;
+  if(b.id=='sha'){saveSh();return}
+  if(b.id=='shc'){shEdit=-1;buildSH();return}
+  var d=b.dataset;
+  if(d.x!==undefined){SH.splice(+d.x,1);saveSH();if(shEdit>=0){shEdit=-1;buildSH()}else renderSH()}
+  else if(d.e!==undefined){var x=SH[+d.e];shEdit=+d.e;buildSH();document.getElementById('shn').value=x.n;document.getElementById('shr').value=x.r||'';document.getElementById('she').value=x.e||'';document.getElementById('shp').value=x.p||'';document.getElementById('sht').value=x.t||'';selZ(document.getElementById('shz'),x.z||'',x.z?(ZONES[x.z]||x.z):'');document.getElementById('shn').focus()}
+  else if(d.m!==undefined){var y=SH[+d.m];if(!ZONES[y.z])ZONES[y.z]=y.z.split('/').pop().replace(/_/g,' ');people.push({n:y.n,z:y.z});render()}
+  else if(d.a!==undefined)tips(+d.a);
+});
+tools.push(
+{name:'listar_stakeholders',description:'Lista os stakeholders com cargo, personalidade e anotações.',inputSchema:{type:'object',properties:{}},execute:function(){used.push('listar_stakeholders');return SH}},
+{name:'adicionar_stakeholder',description:'Cria ou atualiza (pelo nome) um stakeholder com cargo, personalidade, anotações e fuso IANA opcional.',inputSchema:{type:'object',properties:{nome:{type:'string'},cargo:{type:'string'},email:{type:'string'},personalidade:{type:'string'},notas:{type:'string'},fuso_iana:{type:'string'}},required:['nome']},execute:function(i){need(i,'nome');var q=String(i.nome).toLowerCase(),x=SH.filter(function(s){return s.n.toLowerCase()==q})[0];if(!x){x={n:String(i.nome).slice(0,80),r:'',z:'',p:'',t:''};SH.push(x)}if(i.cargo)x.r=String(i.cargo).slice(0,100);if(i.email)x.e=String(i.email).slice(0,120);if(i.personalidade)x.p=String(i.personalidade).slice(0,1500);if(i.notas)x.t=String(i.notas).slice(0,3000);if(i.fuso_iana){try{new Intl.DateTimeFormat('en',{timeZone:i.fuso_iana})}catch(e){throw new Error('Fuso inválido')}x.z=i.fuso_iana}used.push('adicionar_stakeholder');saveSH();renderSH();return SH}}
+);
+buildFF();buildHF();buildSH();
+trip();render();renderTasks();
+try{if(localStorage.getItem('ea-lang')=='en')setLang('en')}catch(e){}
+</script>
+</body>
+</html>
